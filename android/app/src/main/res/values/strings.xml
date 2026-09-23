@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Namoz Nazorati</string>
+    <string name="title_activity_main">Namoz Nazorati</string>
+    <string name="package_name">com.abdulaziz.namoznazorati</string>
+    <string name="custom_url_scheme">com.abdulaziz.namoznazorati</string>
+</resources>

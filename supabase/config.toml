@@ -1,0 +1,2 @@
+[functions.prayer-times]
+verify_jwt = false
