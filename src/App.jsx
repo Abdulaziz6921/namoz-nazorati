@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import NotificationActions from "./services/notificationActionsPlugin";
+import { AuthProvider } from "./context/AuthContext";
 
 import AppLayout from "./components/layout/AppLayout";
 import BottomNav from "./components/layout/BottomNav";
@@ -11,12 +12,14 @@ import KalendarPage from "./pages/KalendarPage";
 import StatistikaPage from "./pages/StatistikaPage";
 import SozlamalarPage from "./pages/SozlamalarPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import HisobPage from "./pages/HisobPage";
 
 import QazoResultScreen from "./components/qazo/QazoResultScreen";
 import QazoPlanScreen from "./components/qazo/QazoPlanScreen";
 import Spinner from "./components/ui/Spinner";
 
 import { isOnboardingCompleted, loadProfile } from "./lib/profileService";
+import { scheduleBackupAfterLocalChange } from "./lib/backUpService";
 
 import {
   calculateQadaEstimate,
@@ -140,7 +143,9 @@ function App() {
    * ---------------------------------------------------------
    */
 
-  async function handleOnboardingComplete() {
+  async function handleOnboardingComplete(options = {}) {
+    const { skipInitialQazo = false } = options;
+
     const profile = await loadProfile();
 
     // Initialize/update app settings after onboarding
@@ -158,9 +163,12 @@ function App() {
 
     await putItem("settings", updatedSettings);
 
-    console.log("✅ App settings initialized:", updatedSettings);
-
     if (profile) {
+      if (skipInitialQazo) {
+        setOnboarded(true);
+        return;
+      }
+
       await initializeQazoBalance(profile);
 
       const result = calculateQadaEstimate(profile);
@@ -255,18 +263,12 @@ function App() {
     // if (cancelled) return;
     if (Capacitor.getPlatform() !== "android") return;
 
-    console.log("📥 Checking native notification actions...");
-
     try {
       const result = await NotificationActions.getActions();
 
       // if (cancelled) return;
 
-      console.log("📦 Native notification actions:", result);
-
       const rawActions = result?.actions || [];
-
-      console.log("📦 Native action count:", rawActions.length);
 
       if (rawActions.length === 0) {
         return;
@@ -308,8 +310,6 @@ function App() {
         }
 
         try {
-          console.log("🔍 Processing native prayer action:", action);
-
           const { date, prayer } = action;
 
           const now = Date.now();
@@ -325,7 +325,7 @@ function App() {
 
           await putItem("prayer_logs", record);
 
-          console.log(`✅ Prayer synced: ${prayer} ${date}`);
+          scheduleBackupAfterLocalChange();
 
           /*
            * If a matching qazo action already exists,
@@ -343,9 +343,6 @@ function App() {
           );
 
           if (matchingQazoAction) {
-            console.log(
-              `⏭️ Matching qazo action already exists: ${prayer} ${date}`,
-            );
           } else {
             await handlePrayerCompleted(prayer, date);
           }
@@ -368,8 +365,6 @@ function App() {
         }
 
         try {
-          console.log("🔍 Processing native qazo action:", action);
-
           const { date, prayer } = action;
 
           await completeQazoFromNotification({
@@ -379,8 +374,6 @@ function App() {
               date,
             },
           });
-
-          console.log(`✅ Qazo action synced: ${prayer} ${date}`);
 
           processedCount++;
         } catch (error) {
@@ -396,8 +389,6 @@ function App() {
 
       if (processedCount > 0) {
         await NotificationActions.clearActions();
-
-        console.log("🧹 Native notification actions cleared");
       }
     } catch (error) {
       console.error("❌ Native notification action sync failed:", error);
@@ -588,10 +579,6 @@ function App() {
         "appStateChange",
         ({ isActive }) => {
           if (isActive) {
-            console.log(
-              "🔄 App became active — checking native notification actions...",
-            );
-
             syncNativeNotificationActions();
           }
         },
@@ -696,6 +683,7 @@ function App() {
           <Route path="/statistika" element={<StatistikaPage />} />
 
           <Route path="/sozlamalar" element={<SozlamalarPage />} />
+          <Route path="/hisob" element={<HisobPage />} />
 
           <Route
             path="/qazo-plan"
@@ -717,4 +705,10 @@ function App() {
   );
 }
 
-export default App;
+export default function AppWithAuth() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}

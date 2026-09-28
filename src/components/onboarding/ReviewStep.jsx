@@ -9,6 +9,7 @@ import {
 import { calculateAccountabilityDate } from "../../lib/accountability";
 import { formatDateNice } from "../../lib/dateUtils";
 import { Pencil } from "lucide-react";
+import { getQazoPeriodDays } from "../../lib/qazoService";
 
 function findLabel(options, key) {
   const found = options.find((o) => o.key === key);
@@ -65,7 +66,7 @@ export default function ReviewStep({ profile, onEdit }) {
     },
   ];
 
-  if (profile.gender === "female") {
+  if (profile.gender === "female" && getQazoPeriodDays(profile) >= 21) {
     let mensValue = findLabel(MENSTRUATION_OPTIONS, profile.menstruationDays);
     if (
       profile.menstruationDays === "custom" &&

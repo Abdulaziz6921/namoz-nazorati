@@ -459,20 +459,6 @@ export default function KalendarPage() {
     return completedCount >= dayIndex;
   }
 
-  function getQazoPeriodDayStatus(dateStr) {
-    const completedCount = getQazoPeriodDayProgress(dateStr);
-
-    if (completedCount === QAZO_PRAYERS.length) {
-      return "complete";
-    }
-
-    if (completedCount > 0) {
-      return "partial";
-    }
-
-    return "missed";
-  }
-
   function getDayStatus(dateStr) {
     // Future date
     if (dateStr > todayStr) {

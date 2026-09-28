@@ -92,8 +92,6 @@ async function syncQazoStateToNative() {
     await NotificationActions.saveQazoState({
       qazoState: JSON.stringify(qazoState),
     });
-
-    console.log("💾 Qazo state synced to native:", qazoState);
   } catch (error) {
     console.error("❌ Failed to sync qazo state to native:", error);
   }
@@ -281,8 +279,6 @@ async function setupNotificationChannel() {
       sound: "xufton_followup",
       vibration: true,
     });
-
-    console.log("✅ Notification channel ready");
   } catch (error) {
     console.error("Notification channel setup failed:", error);
   }
@@ -335,8 +331,6 @@ async function setupNotificationActions() {
         },
       ],
     });
-
-    console.log("✅ Notification actions ready");
   } catch (error) {
     console.error("Notification actions setup failed:", error);
   }
@@ -396,8 +390,6 @@ async function completePrayerFromNotification(notification) {
 
   await putItem("prayer_logs", record);
 
-  console.log(`✅ ${PRAYER_NAMES[prayerKey] || prayerKey} marked as completed`);
-
   // Tell the currently-open app to refresh its prayer state.
   showBanner({
     type: "prayer-completed",
@@ -441,8 +433,6 @@ async function markPrayerNotCompletedFromNotification(notification) {
   };
 
   await putItem("prayer_logs", record);
-
-  console.log(`ℹ️ ${PRAYER_NAMES[prayerKey] || prayerKey} remains uncompleted`);
 
   showBanner({
     type: "prayer-not-completed",
@@ -499,8 +489,6 @@ export async function scheduleDaily5QazoReminder(prayerKey, dateStr) {
     const plan = await loadQazoPlan();
 
     if (plan?.planType !== "daily_5") {
-      console.log("ℹ️ Qazo notification skipped: plan is not daily_5");
-
       return;
     }
 
@@ -521,10 +509,6 @@ export async function scheduleDaily5QazoReminder(prayerKey, dateStr) {
         });
 
         if (result?.scheduled) {
-          console.log(
-            `⏭️ Qazo already scheduled natively: ${dateStr} / ${prayerKey}`,
-          );
-
           return;
         }
       } catch (error) {
@@ -539,8 +523,6 @@ export async function scheduleDaily5QazoReminder(prayerKey, dateStr) {
     const balance = await loadQazoBalance();
 
     if (!balance?.qazoSetupCompleted) {
-      console.log("ℹ️ Qazo notification skipped: qazo setup is incomplete");
-
       return;
     }
 
@@ -552,10 +534,6 @@ export async function scheduleDaily5QazoReminder(prayerKey, dateStr) {
     const remaining = Number(balance?.byPrayer?.[prayerKey] || 0);
 
     if (remaining <= 0) {
-      console.log(
-        `ℹ️ ${PRAYER_NAMES[prayerKey]} qazo = 0, notification skipped`,
-      );
-
       return;
     }
 
@@ -568,14 +546,10 @@ export async function scheduleDaily5QazoReminder(prayerKey, dateStr) {
     const appSettings = await getItem("settings", "app_settings");
 
     if (!appSettings?.notificationsEnabled) {
-      console.log("🔕 Qazo notification skipped: global notifications are OFF");
-
       return;
     }
 
     if (!settings.qazoReminders) {
-      console.log("🔕 Qazo notification skipped: qazo reminders are OFF");
-
       return;
     }
 
@@ -659,10 +633,6 @@ export async function scheduleDaily5QazoReminder(prayerKey, dateStr) {
         ],
       });
 
-      console.log(
-        `✅ Daily_5 ${PRAYER_NAMES[prayerKey]} qazo notification scheduled with ID: ${safeQazoId}`,
-      );
-
       return;
     }
 
@@ -726,8 +696,6 @@ export async function completeQazoFromNotification(notification) {
     const plan = await loadQazoPlan();
 
     if (plan?.planType !== "daily_5") {
-      console.log("ℹ️ Qazo completion skipped: plan is not daily_5");
-
       return;
     }
 
@@ -741,8 +709,6 @@ export async function completeQazoFromNotification(notification) {
 
     // Never allow the counter to go below zero.
     if (remaining <= 0) {
-      console.log(`ℹ️ ${PRAYER_NAMES[prayerKey]} qazo is already 0`);
-
       return;
     }
 
@@ -770,8 +736,6 @@ export async function completeQazoFromNotification(notification) {
 
     await syncQazoStateToNative();
 
-    console.log(`✅ ${PRAYER_NAMES[prayerKey]} qazo completed: -1`);
-
     showBanner({
       type: "qazo-completed",
       id: `qazo_completed_${date}_${prayerKey}`,
@@ -783,113 +747,6 @@ export async function completeQazoFromNotification(notification) {
     console.error("Failed to complete qazo from notification:", error);
   }
 }
-
-// ─────────────────────────────────────────────
-// Native notification listeners
-// ─────────────────────────────────────────────
-
-// async function setupNativeNotificationListeners() {
-//   if (!Capacitor.isNativePlatform()) {
-//     return;
-//   }
-
-//   if (nativeListenersInitialized) {
-//     return;
-//   }
-
-//   nativeListenersInitialized = true;
-
-//   try {
-//     // ⚠️ MUHIM CHORALARDAN BIRI: Ilova faol paytda kelgan xabarlarni tutish
-//     await LocalNotifications.addListener(
-//       "localNotificationReceived",
-//       (notification) => {
-//         // Agar foydalanuvchi ilovadan chiqib ketayotgan paytda tasodifan ishga tushsa,
-//         // ichkarida banner chiqishini oldini olamiz
-//         const extra = notification?.extra || {};
-//         console.log(
-//           "🔔 Local notification received in foreground:",
-//           notification,
-//         );
-
-//         if (extra.type === "prayer-follow-up") {
-//           showBanner({
-//             type: "prayer",
-//             id: `prayer_followup_${extra.date}_${extra.prayerKey}`,
-//             prayerKey: extra.prayerKey,
-//             prayerName: PRAYER_NAMES[extra.prayerKey] || extra.prayerKey,
-//             date: extra.date,
-//           });
-//         }
-//       },
-//     );
-
-//     // 🏆 ASOSIY TUZATISH SHU YERDA: Foydalanuvchi tugmani bosganda
-//     await LocalNotifications.addListener(
-//       "localNotificationActionPerformed",
-//       async (event) => {
-//         const actionId = event?.actionId;
-//         const notification = event?.notification;
-//         const extra = notification?.extra || {};
-
-//         console.log("👆 Notification action:", actionId, notification);
-
-//         // 1. NAMOS VAQTI ESALTMALARI
-//         if (extra.type === "prayer-follow-up") {
-//           if (actionId === "completed") {
-//             try {
-//               // Baza yangilanadi (ichidagi showBanner faqat ilova ochilgani uchun bazani yangilashga xizmat qiladi)
-//               await completePrayerFromNotification(notification);
-//             } catch (error) {
-//               console.error("Failed to complete prayer:", error);
-//             } finally {
-//               // 🚀 Ilovani foydalanuvchiga ko'rsatmasdan darhol orqa fonga qaytaramiz (yopamiz)
-//               if (Capacitor.isNativePlatform()) {
-//                 await App.minimizeApp();
-//               }
-//             }
-//           }
-
-//           if (actionId === "not_completed") {
-//             // "Yo'q" tugmasi bosilganda hech narsa qilmaymiz va ilovani darhol yopamiz
-//             if (Capacitor.isNativePlatform()) {
-//               await App.minimizeApp();
-//             }
-//           }
-//         }
-
-//         // 2. QAZO REJASI ESALTMALARI
-//         if (extra.type === "qazo-follow-up") {
-//           if (actionId === "completed") {
-//             try {
-//               // Qazo sonini 1 taga kamaytirish
-//               await completeQazoFromNotification(notification);
-//             } catch (error) {
-//               console.error("Failed to complete qazo:", error);
-//             } finally {
-//               // Ilovani darhol orqa fonga qaytaramiz
-//               if (Capacitor.isNativePlatform()) {
-//                 await App.minimizeApp();
-//               }
-//             }
-//           }
-
-//           if (actionId === "not_completed") {
-//             // Hech narsa o'zgarmaydi va ilova yopiladi
-//             if (Capacitor.isNativePlatform()) {
-//               await App.minimizeApp();
-//             }
-//           }
-//         }
-//       },
-//     );
-
-//     console.log("✅ Native notification listeners ready");
-//   } catch (error) {
-//     nativeListenersInitialized = false;
-//     console.error("Notification listener setup failed:", error);
-//   }
-// }
 
 async function setupNativeNotificationListeners() {
   if (!Capacitor.isNativePlatform()) {
@@ -908,7 +765,6 @@ async function setupNativeNotificationListeners() {
       "localNotificationReceived",
       (notification) => {
         const extra = notification?.extra || {};
-        console.log("🔔 Local notification received:", notification);
 
         const fireAt = extra.fireAt ? new Date(extra.fireAt).getTime() : null;
 
@@ -921,13 +777,6 @@ async function setupNativeNotificationListeners() {
           now - fireAt <= 30 * 1000;
 
         if (!bannerIsFresh) {
-          console.log("⏭️ Skipping stale notification banner:", {
-            type: extra.type,
-            prayerKey: extra.prayerKey,
-            date: extra.date,
-            fireAt: extra.fireAt,
-          });
-
           return;
         }
 
@@ -951,11 +800,6 @@ async function setupNativeNotificationListeners() {
         }
       },
     );
-
-    // 🚀 DIQQAT: localNotificationActionPerformed TINGLOVCHISI BUTUNLAY OLIB TASHLANDI!
-    // Chunki tugma bosilganda harakatlar ilovani ochmasdan to'g'ri Java-ga boradi.
-
-    console.log("✅ Native notification listeners ready");
   } catch (error) {
     nativeListenersInitialized = false;
     console.error("Notification listener setup failed:", error);
@@ -1071,8 +915,6 @@ export async function clearAllScheduled() {
         })),
       });
     }
-
-    console.log("🧹 Scheduled notifications cleared");
   } catch (error) {
     console.error("Failed to clear scheduled notifications:", error);
   }
@@ -1089,12 +931,6 @@ export async function getPendingNotifications() {
 
   try {
     const result = await LocalNotifications.getPending();
-
-    // console.log("📅 Pending notifications:", result.notifications);
-    console.log(
-      "📅 Pending notifications:",
-      JSON.stringify(result.notifications, null, 2),
-    );
 
     return result.notifications;
   } catch (error) {
@@ -1123,8 +959,6 @@ export async function schedulePrayerNotifications(region) {
 
   // Global master switch is OFF.
   if (!appSettings?.notificationsEnabled) {
-    console.log("🔕 Global notification master is OFF");
-
     await clearAllScheduled();
 
     return [];
@@ -1132,8 +966,6 @@ export async function schedulePrayerNotifications(region) {
 
   // Prayer notification preference is OFF.
   if (!settings.prayerNotifications) {
-    console.log("🔕 Prayer notifications are OFF");
-
     await clearAllScheduled();
 
     return [];
@@ -1407,8 +1239,6 @@ export async function schedulePrayerNotifications(region) {
     await LocalNotifications.schedule({
       notifications,
     });
-
-    console.log(`✅ ${notifications.length} notification(s) scheduled`);
   }
 
   await putItem("settings", {
@@ -1425,8 +1255,6 @@ export async function schedulePrayerNotifications(region) {
   });
 
   const pending = await getPendingNotifications();
-
-  console.log(`📅 ${pending.length} notification(s) currently pending`);
 
   return scheduled;
 }
@@ -1448,7 +1276,6 @@ export async function initNotificationSystem(region) {
   }
 
   if (!appSettings?.notificationsEnabled) {
-    console.log("🔕 Global notification master is OFF");
     return;
   }
 

@@ -15,7 +15,7 @@ import {
 } from "../../lib/notificationService";
 
 import { getItem } from "../../lib/db";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 export default function NotificationSettings({
   masterEnabled = false,
@@ -263,11 +263,12 @@ export default function NotificationSettings({
               </div>
 
               <span className="text-gray-700">
-                {showPerPrayer ? (
-                  <ChevronUp size={20} />
-                ) : (
-                  <ChevronDown size={20} />
-                )}
+                <ChevronDown
+                  size={20}
+                  className={`transition-transform duration-400 ease-in-out ${
+                    showPerPrayer ? "-rotate-180" : "rotate-0"
+                  }`}
+                />
               </span>
             </button>
 

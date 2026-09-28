@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { loadProfile, saveProfile } from "../../lib/profileService";
 import { recalculateQazoFromProfile } from "../../lib/qazoService";
+import Card from "../ui/Card";
+import ConfirmDialog from "../ui/ConfirmDialog";
+import { formatDate } from "../../lib/dateUtils";
+import { EditIcon } from "lucide-react";
 
 import {
   GENDER_OPTIONS,
@@ -8,10 +12,6 @@ import {
   PRAYER_START_TYPES,
   MENSTRUATION_OPTIONS,
 } from "../../constants/onboarding";
-import Card from "../ui/Card";
-import Button from "../ui/Button";
-import { formatDate } from "../../lib/dateUtils";
-import { EditIcon, TriangleAlert } from "lucide-react";
 
 const QAZO_AFFECTING_FIELDS = [
   "gender",
@@ -289,6 +289,7 @@ export default function ProfileSection() {
 
       {showConfirm && (
         <ConfirmDialog
+          message="Profil ma'lumotlarini o'zgartirish qazo namozlari hisoblashiga ta'sir qilishi mumkin. Hisobdorlik sanasi yoki namoz boshlash sanasi o'zgarganda, qazo balansi qayta hisoblanishi kerak bo'ladi. Davom etasizmi?"
           onConfirm={doSave}
           onCancel={() => setShowConfirm(false)}
           saving={saving}
@@ -504,47 +505,6 @@ function EditForm({ draft, updateDraft, customMensDays, setCustomMensDays }) {
               {opt.label}
             </button>
           ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ConfirmDialog({ onConfirm, onCancel, saving }) {
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-green-900/40 backdrop-blur-sm"
-      onClick={onCancel}
-    >
-      <div
-        className="bg-cream-50 rounded-card shadow-deep max-w-sm w-full p-6 animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="w-12 h-12 rounded-full bg-gold-100 flex items-center justify-center mb-4 mx-auto">
-          <TriangleAlert size={24} color="#B8860B" strokeWidth={2} />
-        </div>
-        <h3 className="font-bold text-green-700 text-lg text-center mb-2">
-          Diqqat!
-        </h3>
-        <p className="text-green-500 text-sm leading-relaxed text-center mb-6">
-          Profil ma'lumotlarini o'zgartirish qazo namozlari hisoblashiga ta'sir
-          qilishi mumkin. Hisobdorlik sanasi yoki namoz boshlash sanasi
-          o'zgarganda, qazo balansi qayta hisoblanishi kerak bo'ladi. Davom
-          etasizmi?
-        </p>
-        <div className="flex gap-3">
-          <Button variant="ghost" size="md" fullWidth onClick={onCancel}>
-            Bekor qilish
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            fullWidth
-            onClick={onConfirm}
-            disabled={saving}
-          >
-            {saving ? "Saqlanmoqda..." : "Tasdiqlash"}
-          </Button>
         </div>
       </div>
     </div>

@@ -68,7 +68,7 @@ function countDaysBetween(startDate, endDate) {
   const end = new Date(endDate);
   end.setHours(0, 0, 0, 0);
   const ms = end.getTime() - start.getTime();
-  return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -137,6 +137,14 @@ function getEffectiveDateRange(profile) {
   return { startDate, endDate, isZero: false };
 }
 
+export function getQazoPeriodDays(profile) {
+  const { startDate, endDate, isZero } = getEffectiveDateRange(profile);
+
+  if (isZero) return 0;
+
+  return countDaysBetween(startDate, endDate);
+}
+
 /**
  * Calculate the number of missed days (accounting for menstruation and consistency).
  *
@@ -159,20 +167,29 @@ export function calculateMissedDays(profile) {
 
   const totalDays = countDaysBetween(startDate, endDate);
 
+  const consistencyRatio = getConsistencyRatio(profile.consistencyEstimate);
+
+  // First calculate qazo without menstruation.
+  const prayedDays = Math.round(totalDays * consistencyRatio);
+  const baseMissedDays = Math.max(0, totalDays - prayedDays);
+
   let excludedDays = 0;
+  let effectiveDays = totalDays;
+
   if (profile.gender === "female" && profile.menstruationDays) {
     excludedDays = estimateMenstruationDaysInPeriod(
       startDate,
       endDate,
       profile.menstruationDays,
     );
+
     if (excludedDays > totalDays) excludedDays = totalDays;
+
+    effectiveDays = totalDays - excludedDays;
   }
 
-  const effectiveDays = totalDays - excludedDays;
-  const consistencyRatio = getConsistencyRatio(profile.consistencyEstimate);
-  const prayedDays = Math.round(effectiveDays * consistencyRatio);
-  const missedDays = Math.max(0, effectiveDays - prayedDays);
+  // Menstruation can only reduce the base qazo amount.
+  const missedDays = Math.min(baseMissedDays, effectiveDays);
 
   const isEstimate =
     profile.regularPrayerStartType === "unknown" ||

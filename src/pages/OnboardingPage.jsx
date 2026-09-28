@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ONBOARDING_STEPS,
   STEP_ORDER,
@@ -12,11 +12,13 @@ import Button from "../components/ui/Button";
 import Spinner from "../components/ui/Spinner";
 import StepProgress from "../components/onboarding/StepProgress";
 import WelcomeStep from "../components/onboarding/WelcomeStep";
+import AccountStep from "../components/onboarding/AccountStep";
 import GenderStep from "../components/onboarding/GenderStep";
 import BirthDateStep from "../components/onboarding/BirthDateStep";
 import PrayerStartStep from "../components/onboarding/PrayerStartStep";
 import MenstruationStep from "../components/onboarding/MenstruationStep";
 import ReviewStep from "../components/onboarding/ReviewStep";
+import { getQazoPeriodDays } from "../lib/qazoService";
 
 export default function OnboardingPage({ onComplete }) {
   const [stepIndex, setStepIndex] = useState(0);
@@ -62,7 +64,7 @@ export default function OnboardingPage({ onComplete }) {
       case ONBOARDING_STEPS.GENDER:
         return !!profile.gender;
       case ONBOARDING_STEPS.BIRTH_DATE:
-        return !!profile.birthDate;
+        return !!profile.birthDate && !!profile.accountabilityDate;
       case ONBOARDING_STEPS.PRAYER_START:
         if (!profile.regularPrayerStartType) return false;
         if (
@@ -144,13 +146,34 @@ export default function OnboardingPage({ onComplete }) {
   if (currentStep === ONBOARDING_STEPS.WELCOME) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f7f4ed] to-[#f1eee6] flex flex-col items-center justify-center px-6 py-10">
-        <WelcomeStep onStart={nextStep} onLater={onComplete} />
+        <WelcomeStep onStart={nextStep} />
       </div>
     );
   }
 
-  const showMenstruation = profile.gender === "female";
-  const dataSteps = STEP_ORDER.filter((s) => s !== ONBOARDING_STEPS.WELCOME);
+  if (currentStep === ONBOARDING_STEPS.ACCOUNT) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#f7f4ed] to-[#f1eee6] flex flex-col items-center justify-center px-6 py-10">
+        <AccountStep
+          onSkip={nextStep}
+          onLoginSuccess={(cloudProfile) => {
+            if (cloudProfile?.onboardingCompleted) {
+              onComplete({ skipInitialQazo: true });
+              return;
+            }
+
+            nextStep();
+          }}
+        />
+      </div>
+    );
+  }
+
+  const showMenstruation =
+    profile.gender === "female" && getQazoPeriodDays(profile) >= 21;
+  const dataSteps = STEP_ORDER.filter(
+    (s) => s !== ONBOARDING_STEPS.WELCOME && s !== ONBOARDING_STEPS.ACCOUNT,
+  );
   const currentDataIdx = dataSteps.indexOf(currentStep);
   const totalDataSteps = showMenstruation
     ? dataSteps.length
@@ -172,9 +195,12 @@ export default function OnboardingPage({ onComplete }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f7f4ed] to-[#f1eee6] flex flex-col px-6 py-8 lg:items-center">
       <div className="w-full max-w-md mx-auto">
-        <div className="mb-6">
-          <StepProgress current={currentDataIdx} total={totalDataSteps} />
-        </div>
+        {currentStep !== ONBOARDING_STEPS.WELCOME &&
+          currentStep !== ONBOARDING_STEPS.ACCOUNT && (
+            <div className="mb-6">
+              <StepProgress current={currentDataIdx} total={totalDataSteps} />
+            </div>
+          )}
 
         <div
           className="flex-1 flex flex-col justify-center min-h-[50vh] animate-slide-up"
@@ -239,22 +265,25 @@ export default function OnboardingPage({ onComplete }) {
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-8 pb-4">
-          <Button variant="ghost" size="md" onClick={prevStep}>
-            {ONBOARDING_TERMS.backButton}
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            fullWidth
-            onClick={handleNext}
-            disabled={!canProceed()}
-          >
-            {currentStep === ONBOARDING_STEPS.REVIEW
-              ? ONBOARDING_TERMS.finishButton
-              : ONBOARDING_TERMS.nextButton}
-          </Button>
-        </div>
+        {currentStep !== ONBOARDING_STEPS.ACCOUNT && (
+          <div className="flex items-center gap-3 mt-8 pb-4">
+            <Button variant="ghost" size="md" onClick={prevStep}>
+              {ONBOARDING_TERMS.backButton}
+            </Button>
+
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              onClick={handleNext}
+              disabled={!canProceed()}
+            >
+              {currentStep === ONBOARDING_STEPS.REVIEW
+                ? ONBOARDING_TERMS.finishButton
+                : ONBOARDING_TERMS.nextButton}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

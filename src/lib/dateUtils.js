@@ -112,7 +112,7 @@ export function getMonthName(monthIndex) {
  * 6 = Shanba
  */
 export function getWeekdayName(dayIndex) {
-  return WEEK_DAYS[dayIndex] || "";
+  return WEEK_DAYS[(dayIndex + 6) % 7] || "";
 }
 
 /**

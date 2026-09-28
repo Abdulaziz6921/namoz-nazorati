@@ -18,6 +18,7 @@ import { PRAYERS } from "../constants/prayers";
 import { formatDate, todayKey, addDays } from "./dateUtils";
 import { getPrayerTimes } from "./prayerTimesService";
 import { loadQazoBalance, saveQazoBalance } from "./qazoService";
+import { scheduleBackupAfterLocalChange } from "./backUpService";
 
 const PROCESSED_KEY = "missed_prayer_processed";
 
@@ -160,6 +161,9 @@ export async function processMissedPrayersForDate(dateStr, region) {
   }
 
   await markDateProcessed(dateStr);
+
+  scheduleBackupAfterLocalChange();
+
   return { missed: missedPrayers, updated: true };
 }
 

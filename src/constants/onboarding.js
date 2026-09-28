@@ -1,5 +1,6 @@
 export const ONBOARDING_STEPS = {
   WELCOME: "welcome",
+  ACCOUNT: "account",
   GENDER: "gender",
   BIRTH_DATE: "birth_date",
   PRAYER_START: "prayer_start",
@@ -9,6 +10,7 @@ export const ONBOARDING_STEPS = {
 
 export const STEP_ORDER = [
   ONBOARDING_STEPS.WELCOME,
+  ONBOARDING_STEPS.ACCOUNT,
   ONBOARDING_STEPS.GENDER,
   ONBOARDING_STEPS.BIRTH_DATE,
   ONBOARDING_STEPS.PRAYER_START,
@@ -48,6 +50,11 @@ export const ONBOARDING_TERMS = {
   welcomeTitle: "Namoz Nazorati",
   welcomeSubtitle:
     "Har bir namozni o'z vaqtida ado eting va qazo namozlaringizni asta-sekin ado etib boring.",
+  accountTitle: "Hisobingiz bormi?",
+  accountSubtitle:
+    "Agar avval Namoz Nazoratidan foydalangan bo‘lsangiz, ma'lumotlaringizni tiklash uchun hisobingizga kiring.",
+  accountLoginButton: "Kirish",
+  accountSkipButton: "O‘tkazib yuborish",
   startButton: "Boshlash",
   laterButton: "Keyinroq",
   genderTitle: "Jinsingizni tanlang",

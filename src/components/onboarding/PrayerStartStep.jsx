@@ -17,17 +17,40 @@ export default function PrayerStartStep({
   onConsistencyChange,
 }) {
   const [dateError, setDateError] = useState("");
+  const [inputValue, setInputValue] = useState(startDate || "");
 
   function handleDateChange(e) {
-    const dateStr = e.target.value;
+    setInputValue(e.target.value);
+  }
+
+  function handleDateBlur() {
+    const dateStr = inputValue;
 
     if (!dateStr) {
       onStartDateChange(null);
+      setDateError("");
+      return;
+    }
+
+    const minAllowedDate = "1900-01-01";
+
+    if (dateStr < minAllowedDate) {
+      setDateError("1900-yildan oldingi sanani tanlash mumkin emas");
+
+      setTimeout(() => {
+        setDateError("");
+      }, 3000);
+
       return;
     }
 
     if (dateStr > todayKey()) {
       setDateError("Kelajak sanani tanlash mumkin emas");
+
+      setTimeout(() => {
+        setDateError("");
+      }, 3000);
+
       return;
     }
 
@@ -36,7 +59,6 @@ export default function PrayerStartStep({
   }
 
   const showDateInput = startType === "exact" || startType === "approximate";
-  const dateValue = startDate || "";
 
   return (
     <StepWrapper title={ONBOARDING_TERMS.prayerStartTitle}>
@@ -44,6 +66,7 @@ export default function PrayerStartStep({
         <div className="space-y-2">
           {PRAYER_START_TYPES.map((option) => {
             const selected = startType === option.key;
+
             return (
               <button
                 key={option.key}
@@ -60,6 +83,7 @@ export default function PrayerStartStep({
                 <span className="font-semibold text-base text-left">
                   {option.label}
                 </span>
+
                 <div
                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                     selected ? "border-cream-50" : "border-green-200"
@@ -81,14 +105,17 @@ export default function PrayerStartStep({
                 ? ONBOARDING_TERMS.prayerStartExact
                 : ONBOARDING_TERMS.prayerStartApproximate}
             </label>
+
             <input
               type="date"
-              value={dateValue}
+              value={inputValue}
               onChange={handleDateChange}
+              onBlur={handleDateBlur}
               max={todayKey()}
               min="1900-01-01"
               className="w-full px-4 py-3.5 rounded-xl border-2 border-cream-200 text-green-700 text-base font-medium focus:outline-none focus:border-green-400 transition-colors bg-cream-50"
             />
+
             {dateError && (
               <p className="text-red-500 text-sm mt-2 text-left">{dateError}</p>
             )}
@@ -102,6 +129,7 @@ export default function PrayerStartStep({
               className="shrink-0 mt-0.5 text-[#2E6B4A]"
               strokeWidth={1.8}
             />
+
             <p className="text-green-600 text-sm leading-relaxed text-left">
               {ONBOARDING_TERMS.prayerStartUnknown}
             </p>
@@ -112,9 +140,11 @@ export default function PrayerStartStep({
           <p className="text-green-600 font-semibold text-base mb-3 text-left">
             {ONBOARDING_TERMS.consistencyTitle}
           </p>
+
           <div className="space-y-2">
             {CONSISTENCY_OPTIONS.map((option) => {
               const selected = consistency === option.key;
+
               return (
                 <button
                   key={option.key}
@@ -131,6 +161,7 @@ export default function PrayerStartStep({
                   <span className="text-sm font-medium flex-1">
                     {option.label}
                   </span>
+
                   {selected && (
                     <Check
                       size={18}

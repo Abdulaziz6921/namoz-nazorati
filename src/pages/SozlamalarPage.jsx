@@ -343,8 +343,6 @@ export default function SozlamalarPage() {
 
       // Schedule notifications
       await schedulePrayerNotifications(updated.region || DEFAULT_REGION);
-
-      console.log("🔔 Notifications enabled after permission");
     } catch (error) {
       console.error("Failed to enable notifications after permission:", error);
     }
@@ -353,11 +351,6 @@ export default function SozlamalarPage() {
   async function handleNotificationMasterToggle() {
     try {
       const nextEnabled = !settings.notificationsEnabled;
-
-      console.log("🔔 Master toggle:", {
-        current: settings.notificationsEnabled,
-        next: nextEnabled,
-      });
 
       // Update master immediately
       const updatedAppSettings = {
@@ -372,15 +365,11 @@ export default function SozlamalarPage() {
       // OFF
       // ==========================================
       if (!nextEnabled) {
-        console.log("🔕 Notifications OFF");
-
         // IMPORTANT:
         // Do NOT modify notificationSettings.
         // User preferences must remain saved.
 
         await clearAllScheduled();
-
-        console.log("🔕 All notifications cancelled");
 
         return;
       }
@@ -388,19 +377,14 @@ export default function SozlamalarPage() {
       // ==========================================
       // ON
       // ==========================================
-      console.log("🔔 Notifications ON");
 
       let permission = await getPermissionState();
-
-      console.log("🔐 Notification permission:", permission);
 
       if (permission === "default") {
         permission = await requestNotificationPermission();
       }
 
       if (permission !== "granted") {
-        console.log("❌ Notification permission not granted");
-
         // Roll master back because permission wasn't granted
         const revertedSettings = {
           ...settings,
@@ -417,8 +401,6 @@ export default function SozlamalarPage() {
       await schedulePrayerNotifications(
         updatedAppSettings.region || DEFAULT_REGION,
       );
-
-      console.log("✅ Notifications enabled and scheduled");
     } catch (error) {
       console.error("❌ Master notification toggle failed:", error);
 
@@ -498,19 +480,20 @@ export default function SozlamalarPage() {
                       : "Profilni ko‘rsatish"
                   }
                   className="
-            shrink-0
-            p-1
-            rounded-lg
-            text-green-700
-            hover:bg-green-50
-            transition-colors
-          "
+    shrink-0
+    p-1
+    rounded-lg
+    text-green-700
+    hover:bg-green-50
+    transition-colors
+  "
                 >
-                  {profileExpanded ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
+                  <ChevronDown
+                    size={20}
+                    className={`transition-transform duration-400 ease-in-out ${
+                      profileExpanded ? "-rotate-180" : "rotate-0"
+                    }`}
+                  />
                 </button>
               </div>
             </div>

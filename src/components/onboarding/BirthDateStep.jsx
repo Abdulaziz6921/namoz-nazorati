@@ -1,7 +1,7 @@
 import { useState } from "react";
 import StepWrapper from "./StepWrapper";
 import { ONBOARDING_TERMS } from "../../constants/onboarding";
-import { formatDateNice } from "../../lib/dateUtils";
+import { formatDateNice, todayKey } from "../../lib/dateUtils";
 import { Info } from "lucide-react";
 
 export default function BirthDateStep({
@@ -12,6 +12,10 @@ export default function BirthDateStep({
   onAccountabilityDateChange,
 }) {
   const [error, setError] = useState("");
+  const [inputValue, setInputValue] = useState(value || "");
+  const [accountabilityInputValue, setAccountabilityInputValue] = useState(
+    accountabilityDate || "",
+  );
 
   const accountabilityAge = gender === "female" ? 9 : 12;
 
@@ -46,6 +50,32 @@ export default function BirthDateStep({
   function handleDateChange(e) {
     const dateStr = e.target.value;
 
+    setInputValue(dateStr);
+
+    if (!dateStr) {
+      setAccountabilityInputValue("");
+
+      if (onAccountabilityDateChange) {
+        onAccountabilityDateChange(null);
+      }
+
+      return;
+    }
+
+    const calculatedDate = addYearsToDate(dateStr, accountabilityAge);
+
+    if (calculatedDate) {
+      setAccountabilityInputValue(calculatedDate);
+
+      if (onAccountabilityDateChange) {
+        onAccountabilityDateChange(calculatedDate);
+      }
+    }
+  }
+
+  function handleDateBlur() {
+    const dateStr = inputValue;
+
     if (!dateStr) {
       onChange(null);
 
@@ -57,28 +87,87 @@ export default function BirthDateStep({
       return;
     }
 
-    // Save birth date immediately so the user can finish typing.
-    onChange(dateStr);
-    setError("");
+    if (dateStr < "1900-01-01") {
+      setError("1900-yildan oldingi sanani tanlash mumkin emas");
 
-    // Automatically calculate accountability date.
+      setTimeout(() => {
+        setError("");
+      }, 3000);
+
+      return;
+    }
+
+    if (dateStr > todayKey()) {
+      setError("Kelajak sanani tanlash mumkin emas");
+
+      setTimeout(() => {
+        setError("");
+      }, 3000);
+
+      return;
+    }
+
+    setError("");
+    onChange(dateStr);
+
     const calculatedDate = addYearsToDate(dateStr, accountabilityAge);
 
-    if (calculatedDate && onAccountabilityDateChange) {
-      onAccountabilityDateChange(calculatedDate);
+    if (calculatedDate) {
+      setAccountabilityInputValue(calculatedDate);
+
+      if (onAccountabilityDateChange) {
+        onAccountabilityDateChange(calculatedDate);
+      }
     }
   }
 
   function handleAccountabilityDateChange(e) {
     const dateStr = e.target.value;
 
+    setAccountabilityInputValue(dateStr);
+
     if (onAccountabilityDateChange) {
       onAccountabilityDateChange(dateStr || null);
     }
   }
 
-  const dateValue = value || "";
-  const maxDate = getLocalDateString();
+  function handleAccountabilityDateBlur() {
+    const dateStr = accountabilityInputValue;
+
+    if (!dateStr) return;
+
+    if (dateStr < "1900-01-01") {
+      if (onAccountabilityDateChange) {
+        onAccountabilityDateChange(null);
+      }
+
+      setError("1900-yildan oldingi sanani tanlash mumkin emas");
+
+      setTimeout(() => {
+        setError("");
+      }, 3000);
+
+      return;
+    }
+
+    if (dateStr > todayKey()) {
+      if (onAccountabilityDateChange) {
+        onAccountabilityDateChange(null);
+      }
+
+      setError("Kelajak sanani tanlash mumkin emas");
+
+      setTimeout(() => {
+        setError("");
+      }, 3000);
+
+      return;
+    }
+
+    setError("");
+  }
+
+  const dateValue = inputValue;
 
   const displayedAccountabilityDate =
     accountabilityDate ||
@@ -95,10 +184,11 @@ export default function BirthDateStep({
 
           <input
             type="date"
-            value={dateValue}
+            value={inputValue}
             onChange={handleDateChange}
+            onBlur={handleDateBlur}
             min="1900-01-01"
-            max={maxDate}
+            max={todayKey()}
             className="w-full px-4 py-4 rounded-xl border-2 border-cream-200 text-green-700 text-lg font-medium focus:outline-none focus:border-green-400 transition-colors bg-cream-50"
           />
 
@@ -107,11 +197,10 @@ export default function BirthDateStep({
               {formatDateNice(dateValue)}
             </p>
           )}
-
-          {error && (
-            <p className="text-red-500 text-sm mt-2 text-left">{error}</p>
-          )}
         </div>
+        {error && (
+          <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+        )}
 
         {/* Balog'at yoshi sanasi */}
         {dateValue && (
@@ -129,10 +218,11 @@ export default function BirthDateStep({
 
             <input
               type="date"
-              value={displayedAccountabilityDate}
+              value={accountabilityInputValue}
               onChange={handleAccountabilityDateChange}
+              onBlur={handleAccountabilityDateBlur}
               min="1900-01-01"
-              max={maxDate}
+              max={todayKey()}
               className="w-full px-4 py-4 rounded-xl border-2 border-cream-200 text-green-700 text-lg font-medium focus:outline-none focus:border-green-400 transition-colors bg-cream-50"
             />
 

@@ -8,6 +8,7 @@ import {
 
 import { putItem } from "../../lib/db";
 import { todayKey } from "../../lib/dateUtils";
+import { scheduleBackupAfterLocalChange } from "../../lib/backUpService";
 import { Check, Clock3, Star, X } from "lucide-react";
 
 /**
@@ -73,6 +74,8 @@ export default function NotificationBanner({
       };
 
       await putItem("prayer_logs", record);
+
+      scheduleBackupAfterLocalChange();
 
       // Refresh the prayer UI if the parent provides a callback.
       if (onPrayerCompleted) {

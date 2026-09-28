@@ -3,6 +3,8 @@ import { PRAYERS, UZBEK_TERMS } from "../constants/prayers";
 import { DEFAULT_REGION, getRegionName } from "../constants/regions";
 import { todayKey, formatDisplayDate, formatNumber } from "../lib/dateUtils";
 import { getByIndex, putItem, getItem } from "../lib/db";
+import { scheduleBackupAfterLocalChange } from "../lib/backUpService";
+
 import {
   loadQazoBalance,
   getQazoTotal,
@@ -108,10 +110,6 @@ export default function AsosiyPage() {
       setLogs(map);
       const balance = await loadQazoBalance();
 
-      console.log("ASOSIY PAGE QAZO BALANCE:", balance);
-      console.log("ASOSIY PAGE BY PRAYER:", balance?.byPrayer);
-      console.log("ASOSIY PAGE TOTAL:", getQazoTotal(balance));
-
       setQazoBalance(balance);
 
       const plan = await loadQazoPlan();
@@ -201,10 +199,15 @@ export default function AsosiyPage() {
 
   async function togglePrayer(prayerKey) {
     const existing = logs[prayerKey];
+
     if (existing) {
       const updated = { ...existing, completed: !existing.completed };
+
       await putItem("prayer_logs", updated);
+
       setLogs((prev) => ({ ...prev, [prayerKey]: updated }));
+
+      scheduleBackupAfterLocalChange();
     } else {
       const newRecord = {
         id: `${today}-${prayerKey}`,
@@ -213,13 +216,18 @@ export default function AsosiyPage() {
         completed: true,
         createdAt: Date.now(),
       };
+
       await putItem("prayer_logs", newRecord);
+
       setLogs((prev) => ({ ...prev, [prayerKey]: newRecord }));
+
+      scheduleBackupAfterLocalChange();
     }
 
     // Refresh statuses after toggle
     if (prayerTimesData) {
       const updatedLogs = { ...logs };
+
       if (existing) {
         updatedLogs[prayerKey] = {
           ...existing,
@@ -233,7 +241,9 @@ export default function AsosiyPage() {
           completed: true,
         };
       }
+
       const statuses = await getPrayerStatuses(today, region, updatedLogs);
+
       setPrayerStatuses(statuses);
     }
   }
