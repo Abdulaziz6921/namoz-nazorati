@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAll, putItem } from "../lib/db";
 import { useAuth } from "../context/AuthContext";
 import AppHeader from "../components/layout/AppHeader";
@@ -54,6 +54,8 @@ export default function HisobPage() {
   // const [backupMessage, setBackupMessage] = useState("");
   const [lastBackupAt, setLastBackupAt] = useState(null);
 
+  const googleSignupProcessingRef = useRef(false);
+
   useEffect(() => {
     getAll("settings").then((settings) => {
       const backupSetting = settings.find(
@@ -75,6 +77,79 @@ export default function HisobPage() {
 
     return () => clearTimeout(timer);
   }, [alertData]);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+
+    const savedPassword = sessionStorage.getItem("signup_password");
+    const savedEmail = sessionStorage.getItem("signup_email");
+
+    if (!savedPassword || !savedEmail) return;
+
+    async function finishGoogleSignup() {
+      if (googleSignupProcessingRef.current) return;
+
+      googleSignupProcessingRef.current = true;
+
+      if (user.email?.toLowerCase() !== savedEmail.toLowerCase()) {
+        await supabase.auth.signOut();
+
+        sessionStorage.removeItem("signup_password");
+        sessionStorage.removeItem("signup_email");
+
+        setAlertData({
+          variant: "error",
+          title: "Email mos kelmadi",
+          message:
+            "Google hisobidagi email siz kiritgan email bilan bir xil emas.",
+        });
+
+        return;
+      }
+
+      console.log("Google signup callback:", {
+        userEmail: user.email,
+        savedEmail,
+        hasSavedPassword: Boolean(savedPassword),
+      });
+
+      console.log("Calling updateUser...");
+
+      const { data: updatedUser, error } = await supabase.auth.updateUser({
+        password: savedPassword,
+      });
+
+      console.log("updateUser result:", {
+        updatedUser,
+        error,
+      });
+
+      sessionStorage.removeItem("signup_password");
+      sessionStorage.removeItem("signup_email");
+
+      if (error) {
+        console.error("Google signup password xatosi:", error);
+
+        setAlertData({
+          variant: "error",
+          title: "Hisob yaratishda xatolik",
+          message: "Parolni hisobingizga saqlashda muammo yuz berdi.",
+        });
+
+        return;
+      }
+
+      setMode(MODES.LANDING);
+
+      setAlertData({
+        variant: "success",
+        title: "Hisob muvaffaqiyatli yaratildi",
+        message: "Endi email va parolingiz bilan kirishingiz mumkin.",
+      });
+    }
+
+    finishGoogleSignup();
+  }, [user, authLoading]);
 
   async function handleLoginSubmit(e) {
     e.preventDefault();
@@ -124,21 +199,58 @@ export default function HisobPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email: signupEmail,
-      password: signupPassword,
-    });
+    const { data, error } = await supabase.functions.invoke(
+      "dynamic-function",
+      {
+        body: {
+          email: signupEmail,
+        },
+      },
+    );
 
     if (error) {
+      console.error("Email tekshirish xatosi:", error);
+
       setAlertData({
         variant: "error",
-        title: "Ro‘yxatdan o‘tishda xatolik",
-        message: "Hisob yaratishda muammo yuz berdi.",
+        title: "Tekshirishda xatolik",
+        message: "Emailni tekshirishda muammo yuz berdi.",
       });
+
       return;
     }
 
-    alertData("Hisob muvaffaqiyatli yaratildi. Emailingizni tekshiring.");
+    if (data?.exists) {
+      setAlertData({
+        variant: "error",
+        title: "Hisob allaqachon mavjud",
+        message:
+          "Bu email bilan hisob allaqachon mavjud. Iltimos, Kirish bo‘limidan foydalaning.",
+      });
+
+      return;
+    }
+
+    sessionStorage.setItem("signup_password", signupPassword);
+    sessionStorage.setItem("signup_email", signupEmail);
+
+    const { error: googleError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (googleError) {
+      sessionStorage.removeItem("signup_password");
+      sessionStorage.removeItem("signup_email");
+
+      setAlertData({
+        variant: "error",
+        title: "Google orqali ro‘yxatdan o‘tishda xatolik",
+        message: "Hisob yaratishda muammo yuz berdi.",
+      });
+    }
   }
 
   async function handleBackup() {

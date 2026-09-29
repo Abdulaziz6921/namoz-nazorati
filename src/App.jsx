@@ -13,6 +13,7 @@ import StatistikaPage from "./pages/StatistikaPage";
 import SozlamalarPage from "./pages/SozlamalarPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import HisobPage from "./pages/HisobPage";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
 
 import QazoResultScreen from "./components/qazo/QazoResultScreen";
 import QazoPlanScreen from "./components/qazo/QazoPlanScreen";
@@ -671,7 +672,9 @@ function App() {
    * MAIN APP
    * ---------------------------------------------------------
    */
-
+  if (window.location.pathname === "/auth/callback") {
+    return <AuthCallbackPage />;
+  }
   return (
     <HashRouter>
       <AppLayout>
@@ -695,6 +698,8 @@ function App() {
           />
 
           <Route path="/qazo-result" element={<QazoResultSettingsRoute />} />
+
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Routes>
       </AppLayout>
 

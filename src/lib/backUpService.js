@@ -688,7 +688,7 @@ export async function mergeLocalDataWithCloud() {
   const cloudQazoLogs = cloudQazoLogsResult.data || [];
 
   if (!cloudProfile) {
-    throw new Error("Bulutdagi profil topilmadi.");
+    return null;
   }
 
   // -------------------------------------------------------
