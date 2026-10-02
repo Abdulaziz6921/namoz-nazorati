@@ -1,12 +1,25 @@
 import { useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function AuthCallbackPage() {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      window.location.href = `${window.location.origin}/#/hisob`;
-    }, 1000);
+    const handleCallback = async () => {
+      const url = window.location.href;
+      const code = new URL(url).searchParams.get("code");
 
-    return () => clearTimeout(timer);
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error("Google OAuth callback error:", error);
+          return;
+        }
+      }
+
+      window.location.href = `${window.location.origin}/#/hisob`;
+    };
+
+    handleCallback();
   }, []);
 
   return (

@@ -6,6 +6,6 @@ const supabaseKey = import.meta.env.VITE_AUTH_SUPABASE_PUBLISHABLE_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     flowType: "pkce",
-    detectSessionInUrl: true,
+    detectSessionInUrl: false,
   },
 });

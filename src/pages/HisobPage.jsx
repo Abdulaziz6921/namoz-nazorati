@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { getAll, putItem } from "../lib/db";
 import { useAuth } from "../context/AuthContext";
 import AppHeader from "../components/layout/AppHeader";
@@ -237,7 +238,9 @@ export default function HisobPage() {
     const { error: googleError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: Capacitor.isNativePlatform()
+          ? "com.abdulaziz.namoznazorati://auth/callback"
+          : `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -319,7 +322,7 @@ export default function HisobPage() {
         showAccount={false}
       />
 
-      <div className="px-5 py-6 lg:px-8 lg:py-10 ">
+      <div className="px-3 py-3 lg:px-8 lg:py-10 ">
         {alertData && (
           <Alert
             variant={alertData.variant}
@@ -340,7 +343,7 @@ export default function HisobPage() {
             variant="danger"
           />
         )}
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="w-full mx-auto">
           {authLoading ? (
             <div className="min-h-[50vh] flex items-center justify-center">
               <div className="w-8 h-8 border-4 border-green-200 border-t-green-700 rounded-full animate-spin" />
@@ -539,17 +542,10 @@ function LandingView({ onLogin, onSignup }) {
           primary
           icon={UserPlus}
           title="Yangi hisob yaratish"
-          description="Bir necha qadamda ro'yxatdan o'ting"
+          description="Ro‘yxatdan o‘ting"
           onClick={onSignup}
         />
       </section>
-
-      <button
-        type="button"
-        className="w-full py-2 text-green-500/70 hover:text-green-700 text-sm font-medium transition-colors"
-      >
-        Hisobsiz davom etish
-      </button>
 
       <BackupInfo />
     </div>
@@ -567,7 +563,7 @@ function AccountAction({
     <button
       type="button"
       onClick={onClick}
-      className={`group w-full rounded-card p-5 text-left transition-all duration-200 active:scale-[0.99] ${
+      className={`group w-full rounded-card md:p-5 p-2 text-left transition-all duration-200 active:scale-[0.99] ${
         primary
           ? "bg-green-700 shadow-soft hover:bg-green-800"
           : "bg-cream-50 shadow-card hover:shadow-soft"
@@ -877,7 +873,7 @@ function BackButton({ onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-2 text-green-500/70 hover:text-green-700 text-sm font-medium transition-colors"
+      className="flex items-center gap-2 text-green-500/70 hover:text-green-700 text-md font-medium transition-colors"
     >
       <ArrowLeft size={18} strokeWidth={2} />
       <span>Orqaga</span>
@@ -887,7 +883,7 @@ function BackButton({ onClick }) {
 
 function BackupInfo() {
   return (
-    <section className="bg-cream-50 rounded-card shadow-card p-5 sm:p-6">
+    <section className="bg-cream-50 rounded-card shadow-card p-3 sm:p-6">
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
           <ShieldCheck size={21} className="text-green-600" strokeWidth={1.9} />

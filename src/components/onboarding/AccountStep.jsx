@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, LogIn, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Info, LogIn, ShieldCheck } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { restoreAllFromCloud } from "../../lib/backUpService";
 import { ONBOARDING_TERMS } from "../../constants/onboarding";
@@ -55,17 +55,24 @@ export default function AccountStep({ onSkip, onLoginSuccess }) {
     <div className="w-full max-w-md mx-auto animate-fade-in">
       <Card padding="lg">
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-green-100 text-green-700 flex items-center justify-center mb-5">
-            <LogIn size={30} strokeWidth={2} />
+          <div className="w-14 h-14 rounded-xl bg-green-100 text-green-700 flex items-center justify-center mb-3">
+            <LogIn size={24} strokeWidth={2} />
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold text-green-700 font-serif mb-3">
             {ONBOARDING_TERMS.accountTitle}
           </h1>
 
-          <p className="text-green-500 text-sm sm:text-base leading-relaxed max-w-sm">
-            {ONBOARDING_TERMS.accountSubtitle}
-          </p>
+          <div className="flex items-start gap-2 rounded-xl bg-green-50 px-4 py-3">
+            <Info size={18} className="text-green-600 mt-0.5 shrink-0" />
+
+            <p className="text-xs sm:text-sm text-green-600 leading-relaxed text-left">
+              {ONBOARDING_TERMS.accountSubtitle}
+            </p>
+          </div>
+          {/* <p className="text-green-500 text-sm sm:text-base leading-relaxed max-w-sm">
+           
+          </p> */}
         </div>
 
         <div className="mt-7 space-y-4">
@@ -128,15 +135,6 @@ export default function AccountStep({ onSkip, onLoginSuccess }) {
               {error}
             </div>
           )}
-
-          <div className="flex items-start gap-2 rounded-xl bg-green-50 px-4 py-3">
-            <ShieldCheck size={18} className="text-green-600 mt-0.5 shrink-0" />
-
-            <p className="text-xs sm:text-sm text-green-600 leading-relaxed text-left">
-              Hisobingizga kirganingizda avval saqlangan ma'lumotlaringiz
-              tekshiriladi va mavjud bo‘lsa tiklanadi.
-            </p>
-          </div>
 
           <Button
             variant="primary"

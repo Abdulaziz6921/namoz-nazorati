@@ -153,7 +153,7 @@ export default function OnboardingPage({ onComplete }) {
 
   if (currentStep === ONBOARDING_STEPS.ACCOUNT) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#f7f4ed] to-[#f1eee6] flex flex-col items-center justify-center px-6 py-10">
+      <div className="min-h-screen bg-gradient-to-b from-[#f7f4ed] to-[#f1eee6] flex flex-col items-center justify-center px-0 py-0 md:px-6 md:py-10">
         <AccountStep
           onSkip={nextStep}
           onLoginSuccess={(cloudProfile) => {

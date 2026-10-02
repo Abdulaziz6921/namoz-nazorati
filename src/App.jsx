@@ -33,6 +33,7 @@ import {
 
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { supabase } from "./lib/supabase";
 
 import { getItem, putItem } from "./lib/db";
 import { getStoredRegion } from "./lib/prayerTimesService";
@@ -605,6 +606,40 @@ function App() {
       }
     };
   }, [syncNativeNotificationActions]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    const handleAppUrl = async ({ url }) => {
+      if (!url.startsWith("com.abdulaziz.namoznazorati://auth/callback")) {
+        return;
+      }
+
+      const code = new URL(url).searchParams.get("code");
+
+      if (!code) {
+        console.error("Google OAuth code not found");
+        return;
+      }
+
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error("Google OAuth session error:", error);
+        return;
+      }
+
+      window.location.href = `${window.location.origin}/#/hisob`;
+    };
+
+    const listener = CapacitorApp.addListener("appUrlOpen", handleAppUrl);
+
+    return () => {
+      listener.then((handle) => handle.remove());
+    };
+  }, []);
   /*
    * ---------------------------------------------------------
    * LOADING

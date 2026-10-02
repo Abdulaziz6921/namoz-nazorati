@@ -53,6 +53,8 @@ export default function BirthDateStep({
     setInputValue(dateStr);
 
     if (!dateStr) {
+      onChange(null);
+
       setAccountabilityInputValue("");
 
       if (onAccountabilityDateChange) {
@@ -62,6 +64,16 @@ export default function BirthDateStep({
       return;
     }
 
+    // Validate immediately
+    if (dateStr < "1900-01-01" || dateStr > todayKey()) {
+      onChange(null);
+      return;
+    }
+
+    // Update parent immediately so "Keyingi" becomes active
+    onChange(dateStr);
+
+    // Calculate accountability date immediately
     const calculatedDate = addYearsToDate(dateStr, accountabilityAge);
 
     if (calculatedDate) {

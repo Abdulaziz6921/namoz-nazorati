@@ -52,7 +52,7 @@ export const ONBOARDING_TERMS = {
     "Har bir namozni o'z vaqtida ado eting va qazo namozlaringizni asta-sekin ado etib boring.",
   accountTitle: "Hisobingiz bormi?",
   accountSubtitle:
-    "Agar avval Namoz Nazoratidan foydalangan bo‘lsangiz, ma'lumotlaringizni tiklash uchun hisobingizga kiring.",
+    "Avval Namoz Nazoratidan foydalangan bo‘lsangiz, hisobingizga kiring shunda saqlangan ma’lumotlaringiz mavjud bo‘lsa tiklanadi.",
   accountLoginButton: "Kirish",
   accountSkipButton: "O‘tkazib yuborish",
   startButton: "Boshlash",
