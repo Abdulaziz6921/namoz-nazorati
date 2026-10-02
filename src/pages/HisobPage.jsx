@@ -417,21 +417,20 @@ function AccountView({
 }) {
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-[#f1eee6]">
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="max-w-2xl mx-auto space-y-4">
+      <div className="px-2 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+        <div className="mx-auto w-full max-w-xl space-y-3 sm:space-y-4">
           {/* Account */}
-          <section className="bg-white rounded-2xl border border-green-900/10 shadow-sm p-5 sm:p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 shrink-0 rounded-2xl bg-green-800 text-cream-50 flex items-center justify-center">
-                <UserRoundCheck size={22} strokeWidth={2} />
+          <section className="rounded-2xl border border-green-900/10 bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-800 text-cream-50 sm:h-12 sm:w-12 sm:rounded-2xl">
+                <UserRoundCheck size={21} strokeWidth={2} />
               </div>
 
-              <div className="min-w-0">
-                <h2 className="text-lg font-bold text-green-900">
+              <div className="mt-3 min-w-0 sm:ml-4 sm:mt-0">
+                <h2 className="text-base font-bold text-green-900 sm:text-lg">
                   Hisobga kirilgan
                 </h2>
-
-                <p className="text-sm text-gray-500 mt-1 break-all">
+                <p className="mt-1 break-words text-sm text-gray-500">
                   {user.email}
                 </p>
               </div>
@@ -439,29 +438,35 @@ function AccountView({
           </section>
 
           {/* Backup */}
-          <section className="bg-white rounded-2xl border border-green-900/10 shadow-sm p-5 sm:p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#f3e7c2] text-green-900 flex items-center justify-center">
-                <Cloud size={22} strokeWidth={2} />
+          <section className="rounded-2xl border border-green-900/10 bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f3e7c2] text-green-900 sm:h-12 sm:w-12 sm:rounded-2xl">
+                <Cloud size={21} strokeWidth={2} />
               </div>
 
-              <div className="min-w-0">
-                <h2 className="text-lg font-bold text-green-900">
+              <div className="mt-3 min-w-0 flex-1 sm:ml-4 sm:mt-0">
+                <h2 className="text-base font-bold text-green-900 sm:text-lg">
                   Zaxira nusxasi
                 </h2>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="mt-1 text-sm leading-relaxed text-gray-500">
                   Maʼlumotlaringizni bulutga saqlash va boshqa qurilmada tiklash
                   imkoniyati.
                 </p>
 
-                <div className="mt-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <ShieldCheck size={17} className="text-green-700" />
-                    <span>Maʼlumotlaringiz bulutga zaxiralanadi.</span>
+                <div className="mt-4 text-left">
+                  <div className="flex items-start gap-2 md:text-sm text-xs text-gray-600">
+                    <ShieldCheck
+                      size={16}
+                      className="mt-0.5 shrink-0 text-green-700"
+                    />
+                    <span className="leading-relaxed">
+                      Maʼlumotlaringiz bulutga zaxiralanadi.
+                    </span>
                   </div>
+
                   {lastBackupAt && (
-                    <p className="text-xs text-gray-500 mt-3">
+                    <p className="mt-3 text-xs leading-relaxed text-gray-500">
                       Oxirgi zaxira:{" "}
                       {new Date(lastBackupAt).toLocaleString("uz-UZ", {
                         day: "2-digit",
@@ -477,18 +482,12 @@ function AccountView({
                     type="button"
                     onClick={onBackup}
                     disabled={isBackingUp}
-                    className="w-full mt-4 rounded-xl bg-green-800 text-cream-50 font-semibold py-3.5 px-4 hover:bg-green-900 active:bg-green-950 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    className="mt-4 min-h-12 w-full rounded-xl bg-green-800 px-4 py-3.5 text-sm font-semibold text-cream-50 transition-colors hover:bg-green-900 active:bg-green-950 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
                   >
                     {isBackingUp
                       ? "Zaxiralanmoqda..."
                       : "Zaxira nusxasini saqlash"}
                   </button>
-
-                  {/* {backupMessage && (
-                    <p className="text-sm text-gray-600 mt-3">
-                      {backupMessage}
-                    </p>
-                  )} */}
                 </div>
               </div>
             </div>
@@ -498,7 +497,7 @@ function AccountView({
           <button
             type="button"
             onClick={onLogout}
-            className="w-full rounded-2xl bg-white border border-red-200 text-red-600 font-semibold py-3.5 px-4 hover:bg-red-50 active:bg-red-100 transition-colors"
+            className="min-h-12 w-full rounded-2xl border border-red-200 bg-white px-4 py-3.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 active:bg-red-100 sm:text-base"
           >
             Hisobdan chiqish
           </button>

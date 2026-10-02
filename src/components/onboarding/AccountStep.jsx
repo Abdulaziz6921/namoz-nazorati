@@ -53,7 +53,7 @@ export default function AccountStep({ onSkip, onLoginSuccess }) {
 
   return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
-      <Card padding="lg">
+      <Card padding="lg" className="bg-transparent shadow-none border-none">
         <div className="flex flex-col items-center text-center">
           <div className="w-14 h-14 rounded-xl bg-green-100 text-green-700 flex items-center justify-center mb-3">
             <LogIn size={24} strokeWidth={2} />
