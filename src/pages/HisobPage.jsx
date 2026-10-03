@@ -23,6 +23,8 @@ import {
   UserPlus,
   LockKeyhole,
   UserRoundCheck,
+  CloudBackup,
+  CloudSync,
 } from "lucide-react";
 
 const MODES = {
@@ -466,16 +468,22 @@ function AccountView({
                   </div>
 
                   {lastBackupAt && (
-                    <p className="mt-3 text-xs leading-relaxed text-gray-500">
-                      Oxirgi zaxira:{" "}
-                      {new Date(lastBackupAt).toLocaleString("uz-UZ", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                    <div className="flex items-start gap-2 text-gray-600">
+                      <CloudSync
+                        size={16}
+                        className="mt-0.5 shrink-0 text-green-700"
+                      />
+                      <span className="mt-0.5 text-xs leading-relaxed text-gray-500">
+                        Oxirgi zaxira:{" "}
+                        {new Date(lastBackupAt).toLocaleString("uz-UZ", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
                   )}
 
                   <button

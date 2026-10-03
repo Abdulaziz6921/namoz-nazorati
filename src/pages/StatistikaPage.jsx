@@ -20,6 +20,20 @@ import Spinner from "../components/ui/Spinner";
 import ErrorState from "../components/ui/ErrorState";
 import EmptyState from "../components/ui/EmptyState";
 import PrayerIcon from "../components/ui/PrayerIcon";
+import {
+  BarChart3,
+  ChartPie,
+  CheckCheck,
+  CheckIcon,
+  CircleStar,
+  Flame,
+  ListCheck,
+  ListCheckIcon,
+  ListChecks,
+  SquareCheckBig,
+  Star,
+  Target,
+} from "lucide-react";
 
 const PERIODS = [
   {
@@ -853,15 +867,13 @@ function StatistikaPage() {
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Namoz */}
-          <div className="rounded-2xl border border-green-100 bg-[#f8fbf6] p-5 sm:p-6">
+          <div className="rounded-2xl border border-green-100 bg-[#f8fbf6] p-3 sm:p-6">
             <div className="flex items-center gap-5">
               <ProgressRing percentage={stats.prayerPercentage} type="green" />
 
               <div className="min-w-0">
                 <h2 className="text-lg sm:text-xl font-bold text-green-950 leading-tight">
-                  Namozlar
-                  <br />
-                  muntazamligi
+                  Namozlar muntazamligi
                 </h2>
 
                 <p className="text-xl sm:text-2xl font-bold text-green-950 mt-4 tabular-nums">
@@ -889,15 +901,13 @@ function StatistikaPage() {
           </div>
 
           {/* Qazo */}
-          <div className="rounded-2xl border border-purple-100 bg-[#fbf8fc] p-5 sm:p-6">
+          <div className="rounded-2xl border border-purple-100 bg-[#fbf8fc] p-3 sm:p-6">
             <div className="flex items-center gap-5">
               <ProgressRing percentage={stats.qazoPercentage} type="purple" />
 
               <div className="min-w-0">
                 <h2 className="text-lg sm:text-xl font-bold text-green-950 leading-tight">
-                  Qazo
-                  <br />
-                  bajarilishi
+                  Qazo bajarilishi
                 </h2>
 
                 <p className="text-xl sm:text-2xl font-bold text-green-950 mt-4 tabular-nums">
@@ -910,7 +920,7 @@ function StatistikaPage() {
 
               <div className="ml-auto hidden sm:block">
                 <SmallIcon purple>
-                  <span className="text-2xl">▤</span>
+                  <ListCheckIcon size={23} strokeWidth={2} />
                 </SmallIcon>
               </div>
             </div>
@@ -945,7 +955,7 @@ function StatistikaPage() {
             {/* Completed */}
             <div className="p-5 sm:p-6 flex items-center gap-4">
               <SmallIcon>
-                <span className="text-2xl text-green-700">✓</span>
+                <CheckCheck size={23} strokeWidth={2.5} />
               </SmallIcon>
 
               <div>
@@ -964,7 +974,7 @@ function StatistikaPage() {
             {/* Daily target */}
             <div className="p-5 sm:p-6 flex items-center gap-4">
               <SmallIcon>
-                <span className="text-xl">◎</span>
+                <Target size={21} strokeWidth={2} />
               </SmallIcon>
 
               <div>
@@ -991,8 +1001,8 @@ function StatistikaPage() {
             <div className="grid grid-cols-2 divide-x divide-green-100">
               <div className="px-2 sm:px-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-orange-50 flex items-center justify-center text-xl">
-                    🔥
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center">
+                    <Flame size={20} strokeWidth={2.2} />
                   </div>
 
                   <p className="font-semibold text-green-900">Uzluksizlik</p>
@@ -1009,8 +1019,8 @@ function StatistikaPage() {
 
               <div className="px-4 sm:px-7">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-green-50 flex items-center justify-center text-xl text-green-800">
-                    ★
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-50 text-green-700 flex items-center justify-center">
+                    <Star size={20} strokeWidth={2} />
                   </div>
 
                   <p className="font-semibold text-green-900">Eng uzun</p>
@@ -1048,21 +1058,23 @@ function StatistikaPage() {
             PRAYER PERFORMANCE
         ====================================================== */}
 
-        <section className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-4 mb-7">
+        <section className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-3 sm:p-6">
+          <div className="flex items-center justify-between gap-1 mb-7">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-green-800 text-white flex items-center justify-center">
-                ▥
+                <BarChart3 size={18} strokeWidth={2} />
               </div>
 
-              <h2 className="text-lg sm:text-xl font-bold text-green-950">
-                Namozlar bo‘yicha ko‘rsatkich
+              <h2 className="text-base sm:text-xl font-bold text-green-950">
+                Namozlar bo‘yicha{" "}
+                <span className="underline decoration-green-800 underline-offset-8">
+                  {PERIODS.find(
+                    (item) => item.key === period,
+                  )?.label.toLowerCase()}{" "}
+                </span>{" "}
+                ko‘rsatkich
               </h2>
             </div>
-
-            <span className="text-sm font-medium text-green-900">
-              {PERIODS.find((item) => item.key === period)?.label}
-            </span>
           </div>
 
           <div
@@ -1138,7 +1150,7 @@ function StatistikaPage() {
                     </div>
 
                     <p className="mt-3 text-sm sm:text-base font-medium text-green-950 whitespace-nowrap">
-                      {PRAYERS[prayer.name]}
+                      {[prayer.name]}
                     </p>
 
                     <p className="text-xs sm:text-sm text-green-800/70 mt-1">
@@ -1159,17 +1171,17 @@ function StatistikaPage() {
             QAZO BREAKDOWN
         ====================================================== */}
 
-        <section className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-5 sm:p-6">
+        <section className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-3 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-xl bg-green-800 text-white flex items-center justify-center">
-              ▣
+              <ChartPie size={19} strokeWidth={2} />
             </div>
 
             <h2 className="text-lg sm:text-xl font-bold text-green-950">
               Qazo bo‘yicha tafsilot
             </h2>
           </div>
-          <div className="w-full flex justify-center">
+          <div className="w-full flex justify-center p-2">
             <div className="w-full max-w-[680px] overflow-visible">
               <svg
                 viewBox="0 0 680 430"
@@ -1511,7 +1523,7 @@ function StatistikaPage() {
             PERIOD CHART
         ====================================================== */}
 
-        <section className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-5 sm:p-6">
+        <section className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-3 sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg sm:text-xl font-bold text-green-950">
               Namozlar dinamikasi
