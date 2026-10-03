@@ -47,9 +47,9 @@ const PRAYER_EMOJI = {
 // Other prayers are relative to their prayer time.
 const FOLLOW_UP_MINUTES = {
   bomdod: 30,
-  asr: 15,
-  shom: 15,
-  xufton: 25,
+  asr: 30,
+  shom: 30,
+  xufton: 40,
 };
 
 const PRAYER_COMPLETION_ACTION_TYPE = "PRAYER_COMPLETION";

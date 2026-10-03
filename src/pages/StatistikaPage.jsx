@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PRAYERS, UZBEK_TERMS } from "../constants/prayers";
 import {
   formatDate,
@@ -83,6 +83,159 @@ function getPeriodStart(period) {
 
 function clampPercentage(value) {
   return Math.min(100, Math.max(0, Math.round(value || 0)));
+}
+
+function useCountUp(target, duration = 1400, triggerKey = target) {
+  const [value, setValue] = useState(0);
+  const ref = useRef(null);
+  const animationFrameRef = useRef(null);
+  const hasStartedRef = useRef(false);
+
+  useEffect(() => {
+    const element = ref.current;
+
+    if (!element) return;
+
+    const targetValue = Number(target) || 0;
+
+    hasStartedRef.current = false;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(targetValue);
+      return;
+    }
+
+    setValue(0);
+
+    const startAnimation = () => {
+      if (hasStartedRef.current) return;
+
+      hasStartedRef.current = true;
+
+      const startTime = performance.now();
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+
+        const progress = Math.min(elapsed / duration, 1);
+
+        const eased = progress;
+
+        setValue(Math.round(targetValue * eased));
+
+        if (progress < 1) {
+          animationFrameRef.current = requestAnimationFrame(animate);
+        } else {
+          setValue(targetValue);
+        }
+      };
+
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          startAnimation();
+        }
+      },
+      {
+        threshold: 0.2,
+      },
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [target, duration, triggerKey]);
+
+  return [value, ref];
+}
+
+function CountUpNumber({
+  value,
+  suffix = "",
+  duration = 900,
+  triggerKey,
+  className = "",
+}) {
+  const [animatedValue, ref] = useCountUp(value, duration, triggerKey ?? value);
+
+  return (
+    <span ref={ref} className={className}>
+      {formatNumber(animatedValue)}
+      {suffix}
+    </span>
+  );
+}
+
+function AnimatedSvgNumber({
+  value,
+  x,
+  y,
+  textAnchor = "start",
+  duration = 900,
+  triggerKey,
+  className = "",
+  suffix = "",
+}) {
+  const [animatedValue, ref] = useCountUp(value, duration, triggerKey ?? value);
+
+  return (
+    <text ref={ref} x={x} y={y} textAnchor={textAnchor} className={className}>
+      {formatNumber(animatedValue)}
+      {suffix}
+    </text>
+  );
+}
+
+function AnimatedQazoLabel({ item, percentage, x, y, textAnchor, isActive }) {
+  const [animatedValue, ref] = useCountUp(
+    item.rakahs,
+    1500,
+    `${item.key}-${item.rakahs}-${Math.round(percentage)}`,
+  );
+
+  const progress = item.rakahs > 0 ? animatedValue / item.rakahs : 0;
+
+  const animatedPercentage = Math.round(percentage * progress);
+
+  const animatedFarz =
+    item.key === "xufton"
+      ? Math.round(item.farzRakahs * progress)
+      : animatedValue;
+
+  const animatedVitr =
+    item.key === "xufton" ? Math.round(item.vitrRakahs * progress) : 0;
+
+  return (
+    <text
+      ref={ref}
+      x={x}
+      y={y}
+      textAnchor={textAnchor}
+      className={`text-[14px] ${
+        isActive ? "fill-green-950 font-bold" : "fill-green-800/60 font-normal"
+      }`}
+    >
+      {item.key === "xufton" ? (
+        <>
+          {formatNumber(animatedFarz)} farz + {formatNumber(animatedVitr)} vitr
+          · {animatedPercentage}%
+        </>
+      ) : (
+        <>
+          {formatNumber(animatedValue)} farz · {animatedPercentage}%
+        </>
+      )}
+    </text>
+  );
 }
 
 /*
@@ -265,8 +418,10 @@ function calculateLongestStreak(records) {
   return longest;
 }
 
-function ProgressRing({ percentage, type = "green" }) {
-  const value = clampPercentage(percentage);
+function ProgressRing({ percentage, type = "green", triggerKey }) {
+  const target = clampPercentage(percentage);
+
+  const [value, ref] = useCountUp(target, 1000, triggerKey ?? target);
 
   const color = type === "purple" ? "#8553a8" : "#26744f";
 
@@ -274,6 +429,7 @@ function ProgressRing({ percentage, type = "green" }) {
 
   return (
     <div
+      ref={ref}
       className="
         relative
         w-28 h-28
@@ -364,6 +520,81 @@ function describeDonutArc(
     `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 1 ${startInner.x} ${startInner.y}`,
     "Z",
   ].join(" ");
+}
+
+function AnimatedPrayerStat({ prayer, percentage, count, days }) {
+  const [animatedPercentage, percentageRef] = useCountUp(
+    percentage,
+    1300,
+    `${prayer.key}-${percentage}`,
+  );
+
+  const [animatedCount] = useCountUp(
+    count,
+    1200,
+    `${prayer.key}-count-${count}`,
+  );
+
+  return (
+    <div
+      ref={percentageRef}
+      className="
+        w-[130px]
+        sm:w-[150px]
+        lg:w-auto
+        shrink-0
+        px-4
+        sm:px-5
+        py-2
+        flex
+        flex-col
+        items-center
+        border-l
+        border-green-100
+        first:border-l-0
+      "
+    >
+      <p className="text-sm sm:text-base font-bold text-green-950">
+        {animatedPercentage}%
+      </p>
+
+      <div className="h-28 sm:h-32 w-full max-w-[72px] mt-2 flex items-end">
+        <div
+          className={`
+            w-full
+            rounded-lg
+            min-h-[8px]
+            transition-all
+            duration-500
+            ${
+              percentage >= 90
+                ? "bg-green-700"
+                : percentage >= 70
+                  ? "bg-green-500"
+                  : percentage >= 50
+                    ? "bg-lime-500"
+                    : "bg-amber-400"
+            }
+          `}
+          style={{
+            height: `${Math.max(percentage, 7)}%`,
+          }}
+        />
+      </div>
+
+      <p className="mt-3 text-sm sm:text-base font-medium text-green-950 whitespace-nowrap">
+        {prayer.name}
+      </p>
+
+      <p className="text-xs sm:text-sm text-green-800/70 mt-1">
+        {animatedCount} / {days}
+      </p>
+
+      <div className="mt-3 text-green-900">
+        <PrayerIcon prayer={prayer.key} size={24} />
+      </div>
+    </div>
+  );
 }
 
 function StatistikaPage() {
@@ -869,7 +1100,11 @@ function StatistikaPage() {
           {/* Namoz */}
           <div className="rounded-2xl border border-green-100 bg-[#f8fbf6] p-3 sm:p-6">
             <div className="flex items-center gap-5">
-              <ProgressRing percentage={stats.prayerPercentage} type="green" />
+              <ProgressRing
+                percentage={stats.prayerPercentage}
+                type="green"
+                triggerKey={`prayer-${period}-${stats.prayerPercentage}`}
+              />
 
               <div className="min-w-0">
                 <h2 className="text-lg sm:text-xl font-bold text-green-950 leading-tight">
@@ -877,8 +1112,11 @@ function StatistikaPage() {
                 </h2>
 
                 <p className="text-xl sm:text-2xl font-bold text-green-950 mt-4 tabular-nums">
-                  {formatNumber(stats.periodDone)} /{" "}
-                  {formatNumber(stats.expectedPeriodTotal)}
+                  <CountUpNumber
+                    value={stats.periodDone}
+                    triggerKey={`period-done-${period}-${stats.periodDone}`}
+                  />{" "}
+                  / {formatNumber(stats.expectedPeriodTotal)}
                 </p>
 
                 <p className="text-sm text-green-800/60 mt-1">
@@ -892,7 +1130,7 @@ function StatistikaPage() {
                 </p>
               </div>
 
-              <div className="ml-auto hidden sm:block">
+              <div className="ml-auto hidden xl:block">
                 <SmallIcon>
                   <PrayerIcon prayer="peshin" size={23} />
                 </SmallIcon>
@@ -903,7 +1141,11 @@ function StatistikaPage() {
           {/* Qazo */}
           <div className="rounded-2xl border border-purple-100 bg-[#fbf8fc] p-3 sm:p-6">
             <div className="flex items-center gap-5">
-              <ProgressRing percentage={stats.qazoPercentage} type="purple" />
+              <ProgressRing
+                percentage={stats.qazoPercentage}
+                type="purple"
+                triggerKey={`qazo-${stats.qazoPercentage}`}
+              />
 
               <div className="min-w-0">
                 <h2 className="text-lg sm:text-xl font-bold text-green-950 leading-tight">
@@ -911,14 +1153,17 @@ function StatistikaPage() {
                 </h2>
 
                 <p className="text-xl sm:text-2xl font-bold text-green-950 mt-4 tabular-nums">
-                  {formatNumber(stats.completedQazoUnits)} /{" "}
-                  {formatNumber(stats.totalQazoUnits)}
+                  <CountUpNumber
+                    value={stats.completedQazoUnits}
+                    triggerKey={`completed-qazo-${stats.completedQazoUnits}`}
+                  />{" "}
+                  / {formatNumber(stats.totalQazoUnits)}
                 </p>
 
                 <p className="text-sm text-green-800/60 mt-1">jami qazo</p>
               </div>
 
-              <div className="ml-auto hidden sm:block">
+              <div className="ml-auto hidden xl:block">
                 <SmallIcon purple>
                   <ListCheckIcon size={23} strokeWidth={2} />
                 </SmallIcon>
@@ -934,7 +1179,7 @@ function StatistikaPage() {
         <section className="rounded-2xl border border-green-100 bg-[#fcfbf7] overflow-hidden">
           <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-green-100">
             {/* Remaining */}
-            <div className="p-5 sm:p-6 flex items-center gap-4">
+            <div className="p-6 flex items-center gap-4">
               <SmallIcon>
                 <span className="text-xl">🕌</span>
               </SmallIcon>
@@ -945,7 +1190,11 @@ function StatistikaPage() {
                 </p>
 
                 <p className="text-2xl sm:text-3xl font-bold text-green-950 mt-1 tabular-nums">
-                  {formatNumber(stats.remainingQazoUnits)} ta
+                  <CountUpNumber
+                    value={stats.remainingQazoUnits}
+                    suffix=" ta"
+                    triggerKey={`remaining-${stats.remainingQazoUnits}`}
+                  />
                 </p>
 
                 <p className="text-sm text-green-800/60">qolgan</p>
@@ -953,7 +1202,7 @@ function StatistikaPage() {
             </div>
 
             {/* Completed */}
-            <div className="p-5 sm:p-6 flex items-center gap-4">
+            <div className="p-6 flex items-center gap-4">
               <SmallIcon>
                 <CheckCheck size={23} strokeWidth={2.5} />
               </SmallIcon>
@@ -964,7 +1213,11 @@ function StatistikaPage() {
                 </p>
 
                 <p className="text-2xl sm:text-3xl font-bold text-green-950 mt-1 tabular-nums">
-                  {formatNumber(stats.completedQazoUnits)} ta
+                  <CountUpNumber
+                    value={stats.completedQazoUnits}
+                    suffix=" ta"
+                    triggerKey={`completed-${stats.completedQazoUnits}`}
+                  />
                 </p>
 
                 <p className="text-sm text-green-800/60">umumiy</p>
@@ -972,7 +1225,7 @@ function StatistikaPage() {
             </div>
 
             {/* Daily target */}
-            <div className="p-5 sm:p-6 flex items-center gap-4">
+            <div className="p-6 flex items-center gap-4">
               <SmallIcon>
                 <Target size={21} strokeWidth={2} />
               </SmallIcon>
@@ -983,7 +1236,11 @@ function StatistikaPage() {
                 </p>
 
                 <p className="text-2xl sm:text-3xl font-bold text-green-950 mt-1 tabular-nums">
-                  {formatNumber(stats.dailyTarget)} ta
+                  <CountUpNumber
+                    value={stats.dailyTarget}
+                    suffix=" ta"
+                    triggerKey={`target-${stats.dailyTarget}`}
+                  />
                 </p>
 
                 <p className="text-sm text-green-800/60">qazo namozi</p>
@@ -997,7 +1254,7 @@ function StatistikaPage() {
         ====================================================== */}
 
         <section className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
-          <div className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-5 sm:p-6">
+          <div className="rounded-2xl border border-green-100 bg-[#fcfbf7] p-3 sm:p-6">
             <div className="grid grid-cols-2 divide-x divide-green-100">
               <div className="px-2 sm:px-5">
                 <div className="flex items-center gap-3">
@@ -1009,7 +1266,11 @@ function StatistikaPage() {
                 </div>
 
                 <p className="text-2xl sm:text-3xl font-bold text-green-950 mt-5">
-                  {stats.currentStreak} kun
+                  <CountUpNumber
+                    value={stats.currentStreak}
+                    suffix=" kun"
+                    triggerKey={`current-streak-${stats.currentStreak}`}
+                  />
                 </p>
 
                 <p className="text-sm text-green-800/60 mt-1">
@@ -1017,7 +1278,7 @@ function StatistikaPage() {
                 </p>
               </div>
 
-              <div className="px-4 sm:px-7">
+              <div className="px-2 sm:px-5">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-50 text-green-700 flex items-center justify-center">
                     <Star size={20} strokeWidth={2} />
@@ -1027,7 +1288,11 @@ function StatistikaPage() {
                 </div>
 
                 <p className="text-2xl sm:text-3xl font-bold text-green-950 mt-5">
-                  {stats.longestStreak} kun
+                  <CountUpNumber
+                    value={stats.longestStreak}
+                    suffix=" kun"
+                    triggerKey={`longest-streak-${stats.longestStreak}`}
+                  />
                 </p>
 
                 <p className="text-sm text-green-800/60 mt-1">
@@ -1097,70 +1362,19 @@ function StatistikaPage() {
       lg:min-w-0
     "
             >
-              {PRAYERS.map((prayer, index) => {
+              {PRAYERS.map((prayer) => {
                 const percentage = prayerPercentages[prayer.key] || 0;
 
                 const count = stats.prayerCounts[prayer.key] || 0;
 
                 return (
-                  <div
+                  <AnimatedPrayerStat
                     key={prayer.key}
-                    className="
-              w-[130px]
-              sm:w-[150px]
-              lg:w-auto
-              shrink-0
-              px-4
-              sm:px-5
-              py-2
-              flex
-              flex-col
-              items-center
-              border-l
-              border-green-100
-              first:border-l-0
-            "
-                  >
-                    <p className="text-sm sm:text-base font-bold text-green-950">
-                      {percentage}%
-                    </p>
-
-                    <div className="h-28 sm:h-32 w-full max-w-[72px] mt-2 flex items-end">
-                      <div
-                        className={`
-                  w-full
-                  rounded-lg
-                  min-h-[8px]
-                  transition-all
-                  duration-500
-                  ${
-                    percentage >= 90
-                      ? "bg-green-700"
-                      : percentage >= 70
-                        ? "bg-green-500"
-                        : percentage >= 50
-                          ? "bg-lime-500"
-                          : "bg-amber-400"
-                  }
-                `}
-                        style={{
-                          height: `${Math.max(percentage, 7)}%`,
-                        }}
-                      />
-                    </div>
-
-                    <p className="mt-3 text-sm sm:text-base font-medium text-green-950 whitespace-nowrap">
-                      {[prayer.name]}
-                    </p>
-
-                    <p className="text-xs sm:text-sm text-green-800/70 mt-1">
-                      {count} / {getDaysForPeriod(period)}
-                    </p>
-
-                    <div className="mt-3 text-green-900">
-                      <PrayerIcon prayer={prayer.key} size={24} />
-                    </div>
-                  </div>
+                    prayer={prayer}
+                    percentage={percentage}
+                    count={count}
+                    days={getDaysForPeriod(period)}
+                  />
                 );
               })}
             </div>
@@ -1458,29 +1672,14 @@ function StatistikaPage() {
                         </text>
 
                         {/* Value + percentage */}
-                        <text
+                        <AnimatedQazoLabel
+                          item={item}
+                          percentage={percentage}
                           x={label.textX}
                           y={label.textY + 21}
                           textAnchor={label.textAnchor}
-                          className={`text-[14px] ${
-                            isActive
-                              ? "fill-green-950 font-bold"
-                              : "fill-green-800/60 font-normal"
-                          }`}
-                        >
-                          {item.key === "xufton" ? (
-                            <>
-                              {formatNumber(item.farzRakahs)} farz +{" "}
-                              {formatNumber(item.vitrRakahs)} vitr ·{" "}
-                              {Math.round(percentage)}%
-                            </>
-                          ) : (
-                            <>
-                              {formatNumber(item.rakahs)} farz ·{" "}
-                              {Math.round(percentage)}%
-                            </>
-                          )}
-                        </text>
+                          isActive={isActive}
+                        />
                       </g>
                     );
                   });
@@ -1495,15 +1694,14 @@ function StatistikaPage() {
                   pointerEvents="none"
                 />
 
-                <text
+                <AnimatedSvgNumber
+                  value={stats.remainingQazoRakahs}
                   x="340"
                   y="207"
                   textAnchor="middle"
+                  triggerKey={`remaining-rakahs-${stats.remainingQazoRakahs}`}
                   className="fill-green-950 text-[34px] font-bold"
-                  pointerEvents="none"
-                >
-                  {formatNumber(stats.remainingQazoRakahs)}
-                </text>
+                />
 
                 <text
                   x="340"
@@ -1531,8 +1729,13 @@ function StatistikaPage() {
 
             <span className="text-sm text-green-800/60">
               <div className="text-right">
-                <p className="text-sm font-semibold text-green-900">
-                  {stats.periodDone} / {stats.expectedPeriodTotal}
+                <p className="text-sm font-semibold text-green-900 tabular-nums">
+                  <CountUpNumber
+                    value={stats.periodDone}
+                    duration={700}
+                    triggerKey={`dynamic-${period}-${stats.periodDone}`}
+                  />{" "}
+                  / {formatNumber(stats.expectedPeriodTotal)}
                 </p>
 
                 <p className="text-[11px] text-green-800/60">
